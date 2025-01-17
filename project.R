@@ -136,6 +136,9 @@ group<-c(rep(1,10),rep(2,10))
 ID <- c(1:20)
 (sleepdf <- data.frame(extra,group,ID))
 
+# classical two-samples t-test for two independent samples.
+#t.test(extra ~ group, var.equal = TRUE) 
+
 (group1 <- sleepdf %>%
   filter(group==1) %>%
   select(extra))
@@ -153,18 +156,19 @@ mean(group2)
 
 boxplot(group1, group2)
 
-t.test(group1, group2, var.equal = TRUE) # 0.9620152
+t.test(group1, group2, var.equal = TRUE) 
 
 
 ### Non parametric bootstrap test using the two-samples t-test statistic
 # as a test statistic.
-(t.obs <- t.test(group1, group2)$statistic)
+
+(t.obs <- t.test(group1, group2)$statistic) # extract test statistic
 
 z <- c(group1, group2)
 
 m <- length(group1)
 n <- length(group2)
-mn <- m+n
+mn <- m + n
 
 B <- 2500
 
@@ -184,15 +188,15 @@ lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
 (Pmc<-(1+sum(t.boot > t.obs))/(B+1))  # 0.9584166
 
 
-### 2.3
+### 2.3 -----------------------------------------------------------------------
 
 # define test statistic tm
-m1 <- median(group1) 
-m2 <- median(group2)
+(M1 <- median(group1)) 
+(M2 <- median(group2))
 
-sm1 <- sum(abs(group1 - m1))
-sm2 <- sum(abs(group2 - m2))
+(SM1 <- sum(abs(group1 - M1)))
+(SM2 <- sum(abs(group2 - M2)))
 
-sm.x <- sm1 + sm2
+(SM.x <- SM1 + SM2)
 
-(t.m <- (m1 - m2) / sm.x)
+(t.m <- (M1 - M2) / SM.x)
