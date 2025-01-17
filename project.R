@@ -223,3 +223,38 @@ hist(tm.boot,nclass=50,probability=T)
 lines(c(tm.obs,tm.obs),c(0,10),lwd=3,col=2)
 
 (pmc <- (1+sum(abs(tm.boot) >= abs(tm.obs)))/(B+1)) 
+
+
+## 2.4 -----------------------------------------------------------------
+
+par(mfrow = c(1, 2))
+
+hist(t.boot,nclass=50,probability=T)
+lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
+
+hist(tm.boot,nclass=50,probability=T)
+lines(c(tm.obs,tm.obs),c(0,10),lwd=3,col=2)
+
+par(mfrow = c(1, 1))
+
+
+#############################################################################
+## Question 3
+##------------------------------------------------
+ID<-c(1:10)
+x1<-c(0.8,-1.23,1.25,-0.28,-0.03,0.61,1.43,-0.54,-0.35,-1.60)
+x2<-c(0.64,-1.69,1.47,-0.14,-0.18,0.43,1.61,-0.31,-0.38,-1.82)
+(q3.df <- data.frame(ID,x1,x2))
+
+# 3.1 --------------------------------------
+# Calculate the means
+(mean_x1 <- mean(q3.df$x1))
+(mean_x2 <- mean(q3.df$x2))
+
+(theta.hat <- mean_x1 / mean_x2)
+
+### 3.2 ------------------------------------
+
+
+
+
