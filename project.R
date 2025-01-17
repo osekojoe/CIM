@@ -185,39 +185,41 @@ hist(t.boot,nclass=50,probability=T)
 lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
 
 # bootstrap p value
-(Pmc<-(1+sum(t.boot > t.obs))/(B+1))  # 0.9584166
+(Pmc <- (1+sum(t.boot > t.obs))/(B+1))  # 0.9584166
 
 
 ### 2.3 -----------------------------------------------------------------------
 
 # define test statistic tm
+group1 <- sleepdf$extra[sleepdf$group == 1]
+group2 <- sleepdf$extra[sleepdf$group == 2]
+M1 <- median(group1)
+M2 <- median(group2)
 
-calc_tm <- function(data) {
-  group1 <- data$extra[data$group == 1]
-  group2 <- data$extra[data$group == 2]
-  
-  M1 <- median(group1)
-  M2 <- median(group2)
-  
-  SM_x <- sum(abs(group1 - M1)) + sum(abs(group2 - M2))
-  tM <- (M1 - M2) / SM_x
-  return(tM)
-}
+SM_x <- sum(abs(group1 - M1)) + sum(abs(group2 - M2))
+(tm.obs <- (M1 - M2) / SM_x)
 
-tm.obs <- calc_tm(sleepdf)
+(sd.group1 <- sd(group1))
+(sd.group2 <- sd(group2))
 
 # Parametric bootstrap
 set.seed(1423) 
 B <- 10000  
-tm_bootstrap <- numeric(B)
+tm.boot <- c(1:B)
+(pooled.mean <- mean(c(group1, group2)))
+
 
 for (b in 1:B) {
-  pooled <- sample(sleepdf$extra, replace = TRUE)
-  bootstrap_data <- data.frame(
-    extra = c(pooled[1:10], pooled[11:20]),
-    group = c(rep(1, 10), rep(2, 10)),
-    ID = 1:20
-  )
-  tm_bootstrap[b] <- calc_tm(bootstrap_data)
+  # Simulate new data under the null (common distribution)
+  group1.boot <- rnorm(n, pooled.mean, sd.group1)
+  group2.boot <- rnorm(n, pooled.mean, sd.group2)
+  M1.boot <- median(group1.boot)
+  M2.boot <- median(group2.boot)
+  SM.boot <- sum(abs(group1.boot - M1.boot)) + sum(abs(group2.boot - M2.boot))
+  tm.boot[b] <- (M1.boot - M2.boot) / SM.boot
 }
 
+hist(tm.boot,nclass=50,probability=T)
+lines(c(tm.obs,tm.obs),c(0,10),lwd=3,col=2)
+
+(pmc <- (1+sum(abs(tm.boot) >= abs(tm.obs)))/(B+1)) 
