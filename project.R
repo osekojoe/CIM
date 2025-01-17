@@ -291,3 +291,18 @@ plot(c(1:B),theta.boot,ylim=c(-2,2))
 abline(m.boot,0,col=2)
 abline(theta.obs,0,col=4)
 
+
+##--------Jacknife ----------------
+(n <- length(x1))
+m.jack <- c(1:n)
+
+for(i in 1:n) {
+  cat(i)
+  x1.jack <- x1[ - c(i)]
+  x2.jack <- x2[ - c(i)]
+  m.jack[i] <- mean(x2.jack)/mean(x1.jack)
+}
+
+(n - 1) * (mean(m.jack) - theta.obs)
+
+
