@@ -191,12 +191,33 @@ lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
 ### 2.3 -----------------------------------------------------------------------
 
 # define test statistic tm
-(M1 <- median(group1)) 
-(M2 <- median(group2))
 
-(SM1 <- sum(abs(group1 - M1)))
-(SM2 <- sum(abs(group2 - M2)))
+calc_tm <- function(data) {
+  group1 <- data$extra[data$group == 1]
+  group2 <- data$extra[data$group == 2]
+  
+  M1 <- median(group1)
+  M2 <- median(group2)
+  
+  SM_x <- sum(abs(group1 - M1)) + sum(abs(group2 - M2))
+  tM <- (M1 - M2) / SM_x
+  return(tM)
+}
 
-(SM.x <- SM1 + SM2)
+tm.obs <- calc_tm(sleepdf)
 
-(t.m <- (M1 - M2) / SM.x)
+# Parametric bootstrap
+set.seed(1423) 
+B <- 10000  
+tm_bootstrap <- numeric(B)
+
+for (b in 1:B) {
+  pooled <- sample(sleepdf$extra, replace = TRUE)
+  bootstrap_data <- data.frame(
+    extra = c(pooled[1:10], pooled[11:20]),
+    group = c(rep(1, 10), rep(2, 10)),
+    ID = 1:20
+  )
+  tm_bootstrap[b] <- calc_tm(bootstrap_data)
+}
+
