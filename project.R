@@ -251,10 +251,60 @@ x2<-c(0.64,-1.69,1.47,-0.14,-0.18,0.43,1.61,-0.31,-0.38,-1.82)
 (mean_x1 <- mean(q3.df$x1))
 (mean_x2 <- mean(q3.df$x2))
 
-(theta.hat <- mean_x1 / mean_x2)
+(theta.obs <- mean_x1 / mean_x2)
+
 
 ### 3.2 ------------------------------------
 
+(n <- length(x1))
+
+B <- 10
+index <- c(1:n)
+theta.boot <- c(1:B)
+for(i in 1:B)
+{   
+  i.boot <- sample(index, size=n, replace=T)
+  x1.boot<-x1[i.boot]
+  x2.boot<-x2[i.boot]
+  theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
+} 
+
+hist(theta.boot,col=0,nclass=30,probability=T)
+lines(c(theta.obs,theta.obs),c(0,5),lwd=2,col=6)
+
+m.boot <- mean(theta.boot)
+b.boot <- m.boot - theta.obs
+b.boot
 
 
+# Function to compute theta hat
+theta_hat <- function(data) {
+  mean(data$x1) / mean(data$x2)
+}
+
+# Bootstrap function
+bootstrap_se <- function(data, B) {
+  thetas <- numeric(B)
+  for(i in 1:B) {
+    boot_data <- data[sample(nrow(data), replace = TRUE), ]
+    thetas[i] <- theta_hat(boot_data)
+  }
+  # Remove NA values or Inf if any before calculating SD
+  thetas <- thetas[!is.na(thetas) & !is.infinite(thetas)]
+  if(length(thetas) < 2) return(NA)  # If there aren't enough valid samples
+  return(sd(thetas))
+}
+
+# Different values of B
+B_values <- c(10, 20, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000)
+se_bootstrap <- sapply(B_values, function(B) bootstrap_se(q3.df, B))
+
+# Print results
+for(i in seq_along(B_values)) {
+  cat("Bootstrap SE with B =", B_values[i], ":", se_bootstrap[i], "\n")
+}
+
+plot(B_values, se_bootstrap, type="b", 
+     xlab="Number of Bootstrap Samples (B)", ylab="Standard Error", 
+     main="Bootstrap Standard Error vs Number of Samples")
 
