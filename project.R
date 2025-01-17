@@ -260,36 +260,31 @@ x2<-c(0.64,-1.69,1.47,-0.14,-0.18,0.43,1.61,-0.31,-0.38,-1.82)
 
 # B_values <- c(10, 20, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000)
 
-(n <- length(x1))
 
-set.seed(1423) 
-B <- 10000 
-index <- c(1:n)
-theta.boot <- c(1:B)
-for(i in 1:B)
-{   
-  i.boot <- sample(index, size=n, replace=T)
-  x1.boot<-x1[i.boot]
-  x2.boot<-x2[i.boot]
-  theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
-} 
-
-hist(theta.boot, col=0,nclass=30,probability=T)
-lines(c(theta.obs,theta.obs),c(0,5),lwd=2,col=6)
-
-# calculate bias
-m.boot <- mean(theta.boot)
-b.boot <- m.boot - theta.obs
-b.boot
-
-plot(c(1:B),theta.boot)
-abline(m.boot,0,col=2)
-abline(theta.obs,0,col=4)
-
-# zoom in
-plot(c(1:B),theta.boot,ylim=c(-2,2))
-abline(m.boot,0,col=2)
-abline(theta.obs,0,col=4)
+# Function to compute theta hat
+#set.seed(235)
+theta_hat <- function(data) {
+  mean(data$x1) / mean(data$x2)
+}
+# Bootstrap function
+bootstrap_se <- function(data, B) {
+  thetas <- numeric(B)
+  for(i in 1:B) {
+    boot_data <- data[sample(nrow(data), replace = TRUE), ]
+    thetas[i] <- theta_hat(boot_data)
+  }
+  # Remove NA values or Inf if any before calculating SD
+  thetas <- thetas[!is.na(thetas) & !is.infinite(thetas)]
+  if(length(thetas) < 2) return(NA)  # If there aren't enough valid samples
+  return(sd(thetas))
+}
+# Different values of B
+B_values <- c(10, 20, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000)
+se_bootstrap <- sapply(B_values, function(B) bootstrap_se(q3.df, B))
+# Print results
+for(i in seq_along(B_values)) {
+  cat("Bootstrap SE with B =", B_values[i], ":", se_bootstrap[i], "\n")
+}
 
 
 ##--------Jacknife ----------------
@@ -305,4 +300,86 @@ for(i in 1:n) {
 
 (n - 1) * (mean(m.jack) - theta.obs)
 
+
+# Jackknife function
+jackknife_se <- function(x1, x2) {
+  n <- length(x1)
+  jackknife_thetas <- numeric(n)
+  
+  for (i in 1:n) {
+    x1_jack <- x1[-i]
+    x2_jack <- x2[-i]
+    jackknife_thetas[i] <- mean(x1_jack) / mean(x2_jack)
+  }
+  
+  # Jackknife standard error
+  se <- sqrt((n - 1) * var(jackknife_thetas))
+  list(se = se, estimates = jackknife_thetas)
+}
+
+# Jackknife SE
+jackknife_results <- jackknife_se(x1, x2)
+jackknife_se <- jackknife_results$se
+jackknife_se
+
+
+#######===3.3 ======================================
+# Confidence interval using bootstrap estimates
+# Data
+x1 <- c(0.8, -1.23, 1.25, -0.28, -0.03, 0.61, 1.43, -0.54, -0.35, -1.60)
+x2 <- c(0.64, -1.69, 1.47, -0.14, -0.18, 0.43, 1.61, -0.31, -0.38, -1.82)
+
+# Bootstrap function to compute ratio estimates
+bootstrap_se <- function(x1, x2, B) {
+  n <- length(x1)
+  bootstrap_thetas <- numeric(B)
+  
+  for (b in 1:B) {
+    indices <- sample(1:n, n, replace = TRUE)  # Resample indices with replacement
+    x1_sample <- x1[indices]
+    x2_sample <- x2[indices]
+    bootstrap_thetas[b] <- mean(x1_sample) / mean(x2_sample)  # Compute ratio
+  }
+  
+  # Return results
+  list(se = sd(bootstrap_thetas), estimates = bootstrap_thetas)
+}
+
+# Perform bootstrap for B = 1000
+B <- 1000
+bootstrap_results <- bootstrap_se(x1, x2, B)
+
+# Function for bootstrap confidence interval
+bootstrap_ci <- function(bootstrap_thetas, alpha = 0.05) {
+  quantile(bootstrap_thetas, probs = c(alpha / 2, 1 - alpha / 2))
+}
+
+# Compute 95% Confidence Interval
+ci <- bootstrap_ci(bootstrap_results$estimates)
+print(ci)
+
+
+########=================================
+
+#### 3.4 ------------------------------------------------------------------
+# Hypothesis test using bootstrap
+bootstrap_test <- function(x1, x2, B, theta_null = 1) {
+  n <- length(x1)
+  bootstrap_thetas <- numeric(B)
+  
+  for (b in 1:B) {
+    indices <- sample(1:n, n, replace = TRUE)
+    x1_sample <- x1[indices]
+    x2_sample <- x2[indices]
+    bootstrap_thetas[b] <- mean(x1_sample) / mean(x2_sample)
+  }
+  
+  # Compute p-value for one-sided test
+  p_value <- mean(bootstrap_thetas >= theta_null)
+  p_value
+}
+
+# Test with B = 1000 and H0: theta = 1
+bootstrap_p_value <- bootstrap_test(x1, x2, B = 1000, theta_null = 1)
+bootstrap_p_value
 
