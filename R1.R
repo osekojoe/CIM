@@ -10,6 +10,8 @@ plot(crabs$Width,crabs$Satellites)
 head(crabs)
 
 crabs <- na.omit(crabs)
+crabs$GoodSpine <- as.factor(crabs$GoodSpine)
+
 
 ########## 1.1
 satfullfit <- glm(Satellites ~ Width + GoodSpine,
@@ -29,7 +31,7 @@ pval
 (LRTsat <- lrtest(satfullfit, satredfit))
 
 ## -------------------------------------------------------------------
-# parametric
+# non-parametric
 
 n <- length(crabs)
 index <- c(1:n)
@@ -40,21 +42,35 @@ B <- 1000
 LRT.nb <- c(1:B)
 
 for (i in 1:B) {
-  crabs.b <- crabs[sample(nrow(crabs), replace = TRUE), ]
+  #crabs.b <- crabs[sample(nrow(crabs), replace = TRUE), ]
+  #sample Satellites and Width together
+  indices <- sample(1:n, replace = TRUE)
+  Satellites.b <- crabs$Satellites[indices]
+  Width.b <- crabs$Width[indices]
+  #sample Goodspine seperately
+  GoodSpine.b <- crabs$GoodSpine[sample(1:n, replace = TRUE)]
+  
+  crabs.b <- data.frame(Satellites = Satellites.b,
+                        Width = Width.b,
+                        GoodSpine = GoodSpine.b)
   
   satful.b <- glm(Satellites ~ Width + GoodSpine, family=poisson, data=crabs.b)
   satred.b <- glm(Satellites ~ Width, family=poisson, data=crabs.b)
   
+  
   LRT.nb[i] <- -2*(logLik(satred.b) - logLik(satful.b))
 }
 
-hist(LRT.nb, nclass=50, xlim=c(0,30))
+png("pictures/histnonparam1.2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+hist(LRT.nb, nclass=50, xlim=c(0,30), xlab="LRT.b", main = "Histogram of LRT.b")
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
+dev.off()
 
 (pval.nonp <- mean(LRT.nb >= LRT.obs)) # 0.759
 
 ## -------------------------------------------------------------------
-# non-parametric
+# parametric
 
 Satellites <- crabs$Satellites
 Width <- crabs$Width
@@ -73,8 +89,11 @@ for (i in 1:B) {
   #LRT.pb[i] <- lrtest(satredfit, satfullfit)
 }
 
-hist(LRT.pb, nclass=50, xlim=c(-1,13))
+png("pictures/histparam1.2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+hist(LRT.pb, nclass=50, xlim=c(-1,13), xlab="LRT.b", main = "Histogram of LRT.b")
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
+dev.off()
 
 (pval.p <- mean(LRT.pb >= LRT.obs)) # 0.556
 
@@ -94,8 +113,11 @@ for (i in 1:B) {
   LRT.permb[i] <- -2*(logLik(satred.b) - logLik(satful.b))
 }
 
-hist(LRT.permb, nclass=50, xlim=c(0,40))
+png("pictures/histperm1.2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+hist(LRT.permb, nclass=50, xlim=c(0,40), xlab="LRT.b", main = "Histogram of LRT.b")
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
+dev.off()
 
 (pval.p <- mean(LRT.permb >= LRT.obs)) # 0.747
 
