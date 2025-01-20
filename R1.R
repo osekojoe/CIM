@@ -51,7 +51,7 @@ for (i in 1:B) {
 hist(LRT.nb, nclass=50, xlim=c(0,30))
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
 
-(pval.nonp <- mean(LRT.b >= LRT.obs))
+(pval.nonp <- mean(LRT.nb >= LRT.obs)) # 0.759
 
 ## -------------------------------------------------------------------
 # non-parametric
@@ -76,7 +76,7 @@ for (i in 1:B) {
 hist(LRT.pb, nclass=50, xlim=c(-1,13))
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
 
-(pval.p <- mean(LRT.pb >= LRT.obs))
+(pval.p <- mean(LRT.pb >= LRT.obs)) # 0.556
 
 ## -------------------------------------------------------------------
 # permutation
@@ -97,5 +97,5 @@ for (i in 1:B) {
 hist(LRT.permb, nclass=50, xlim=c(0,40))
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
 
-(pval.p <- mean(LRT.permb >= LRT.obs))
+(pval.p <- mean(LRT.permb >= LRT.obs)) # 0.747
 
