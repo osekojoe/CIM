@@ -5,6 +5,7 @@ library(lmtest)
 
 data(crabs)
 names(crabs)
+attach(crabs)
 
 plot(crabs$Width,crabs$Satellites)
 head(crabs)
@@ -42,23 +43,17 @@ B <- 1000
 LRT.nb <- c(1:B)
 
 for (i in 1:B) {
-  #crabs.b <- crabs[sample(nrow(crabs), replace = TRUE), ]
-  #sample Satellites and Width together
-  indices <- sample(1:n, replace = TRUE)
-  Satellites.b <- crabs$Satellites[indices]
-  Width.b <- crabs$Width[indices]
-  #sample Goodspine seperately
-  GoodSpine.b <- crabs$GoodSpine[sample(1:n, replace = TRUE)]
+  # Sample Satellites and Width together 
+  crabs.b <- crabs[sample(nrow(crabs), replace = TRUE), c("Satellites", "Width")]
+  # sample GoodSpine separately
+  crabs.b$GoodSpine <- sample(crabs$GoodSpine, size = nrow(crabs), replace = TRUE)
   
-  crabs.b <- data.frame(Satellites = Satellites.b,
-                        Width = Width.b,
-                        GoodSpine = GoodSpine.b)
+  # Fit models under the null and alternative hypotheses
+  satful.b <- glm(Satellites ~ Width + GoodSpine, family = poisson, data = crabs.b)
+  satred.b <- glm(Satellites ~ Width, family = poisson, data = crabs.b)
   
-  satful.b <- glm(Satellites ~ Width + GoodSpine, family=poisson, data=crabs.b)
-  satred.b <- glm(Satellites ~ Width, family=poisson, data=crabs.b)
-  
-  
-  LRT.nb[i] <- -2*(logLik(satred.b) - logLik(satful.b))
+  # Calculate LRT statistic
+  LRT.nb[i] <- -2 * (logLik(satred.b) - logLik(satful.b))
 }
 
 png("pictures/histnonparam1.2.png", width = 18, 
@@ -67,8 +62,9 @@ hist(LRT.nb, nclass=50, xlim=c(0,30), xlab="LRT.b", main = "Histogram of LRT.b")
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
 dev.off()
 
-(pval.nonp <- mean(LRT.nb >= LRT.obs)) # 0.759
-
+#(pval.nonp <- mean(LRT.nb >= LRT.obs)) # 0.759
+pval.nonp <- (1 + sum(LRT.nb > LRT.obs)) / (B+1) # 0.759
+pval.nonp
 ## -------------------------------------------------------------------
 # parametric
 
