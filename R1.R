@@ -48,7 +48,6 @@ for (i in 1:B) {
   # sample GoodSpine separately
   crabs.b$GoodSpine <- sample(crabs$GoodSpine, size = nrow(crabs), replace = TRUE)
   
-  # Fit models under the null and alternative hypotheses
   satful.b <- glm(Satellites ~ Width + GoodSpine, family = poisson, data = crabs.b)
   satred.b <- glm(Satellites ~ Width, family = poisson, data = crabs.b)
   
@@ -72,12 +71,14 @@ Satellites <- crabs$Satellites
 Width <- crabs$Width
 GoodSpine <- crabs$GoodSpine
 
+hat.mu<-mean(Satellites)
+
 set.seed(2025)
 B <- 1000  # Number of bootstrap samples
 LRT.pb <- c(1:B)
 
 for (i in 1:B) {
-  Satellites.b <- rpois(n = nrow(crabs), lambda = exp(predict(satredfit)))
+  Satellites.b <- rpois(n = nrow(crabs), lambda = hat.mu)
   satful.b <- glm(Satellites.b ~ Width + GoodSpine, family=poisson)
   satred.b <- glm(Satellites.b ~ Width, family=poisson)
   
@@ -88,10 +89,10 @@ for (i in 1:B) {
 png("pictures/histparam1.2.png", width = 18, 
     height = 10, units = "cm", res = 300)
 hist(LRT.pb, nclass=50, xlim=c(-1,13), xlab="LRT.b", main = "Histogram of LRT.b")
-lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
+lines(c(LRT.obs, LRT.obs) ,c(0,500),col=2)
 dev.off()
 
-(pval.p <- mean(LRT.pb >= LRT.obs)) # 0.556
+(pval.p <- (1 + sum(LRT.pb > LRT.obs)) / (B+1)) # 0.556
 
 ## -------------------------------------------------------------------
 # permutation
@@ -115,5 +116,5 @@ hist(LRT.permb, nclass=50, xlim=c(0,40), xlab="LRT.b", main = "Histogram of LRT.
 lines(c(LRT.obs,LRT.obs) ,c(0,500),col=2)
 dev.off()
 
-(pval.p <- mean(LRT.permb >= LRT.obs)) # 0.747
+(pval.p <- (1 + sum(LRT.permb > LRT.obs)) / (B+1))  # 0.747
 
