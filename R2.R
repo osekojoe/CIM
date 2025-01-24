@@ -26,7 +26,10 @@ group2 <- group2$extra
 mean(group1)
 mean(group2)
 
+png("pictures/boxplot2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
 boxplot(group1, group2)
+dev.off()
 
 t.test(group1, group2, var.equal = TRUE) 
 
@@ -37,12 +40,14 @@ t.test(group1, group2, var.equal = TRUE)
 (t.obs <- t.test(group1, group2)$statistic) # extract test statistic
 
 z <- c(group1, group2)
+z
 
 m <- length(group1)
 n <- length(group2)
 mn <- m + n
 
-B <- 2500
+set.seed(2025)
+B <- 10000
 
 t.boot <- c(1:B)
 for (b in 1:B)
@@ -53,11 +58,14 @@ for (b in 1:B)
   t.boot[b]<-t.test(x.b,y.b)$statistic
 }
 
+png("pictures/hist2.1.png", width = 18, 
+    height = 10, units = "cm", res = 300)
 hist(t.boot,nclass=50,probability=T)
 lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
+dev.off()
 
 # bootstrap p value
-(Pmc <- (1+sum(t.boot > t.obs))/(B+1))  # 0.9584166
+(Pmc <- (1+sum(t.boot > t.obs))/(B+1))  # 0.9627037
 
 
 ### 2.3 -----------------------------------------------------------------------
@@ -94,17 +102,23 @@ for (b in 1:B) {
 hist(tm.boot,nclass=50,probability=T)
 lines(c(tm.obs,tm.obs),c(0,10),lwd=3,col=2)
 
-(pmc <- (1+sum(abs(tm.boot) >= abs(tm.obs)))/(B+1)) 
+(pmc <- (1+sum(abs(tm.boot) >= abs(tm.obs)))/(B+1))  # 0.2143786
 
 
 ## 2.4 -----------------------------------------------------------------
 
+
+png("pictures/hist2.3.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+
 par(mfrow = c(1, 2))
 
-hist(t.boot,nclass=50,probability=T)
+hist(t.boot,nclass=50,probability=T, main = "Non-parametric bootstrap")
 lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
 
-hist(tm.boot,nclass=50,probability=T)
+hist(tm.boot,nclass=50,probability=T, main = "Parametric bootstrap")
 lines(c(tm.obs,tm.obs),c(0,10),lwd=3,col=2)
+
+dev.off()
 
 par(mfrow = c(1, 1))
