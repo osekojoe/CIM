@@ -80,8 +80,24 @@ plot(results$B, results$Bootstrap_SE, type = "b", log = "x",
      main = "Bootstrap SE vs B")
 grid()
 
+###--------
+n<-length(x1)
+B<-1000
+index<-c(1:n)
+theta.boot<-c(1:B)
+for(i in 1:B)
+{   
+  i.boot<-sample(index, size=n, replace=T)
+  x1.boot<-y[i.boot]
+  x2.boot<-z[i.boot]
+  theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
+} 
+
+(se.boot <- sqrt( ((n-1)/n)*sum((theta.boot-mean(theta.boot))^2) ))
+
 
 ##--------Jacknife --------------------------------------------------------
+
 (n <- length(x1))
 m.jack <- c(1:n)
 
@@ -91,51 +107,13 @@ for(i in 1:n) {
   x2.jack <- x2[ - c(i)]
   m.jack[i] <- mean(x2.jack)/mean(x1.jack)
 }
-
+# for bias
 (n - 1) * (mean(m.jack) - theta.obs) # 5.819458
+# for standard error
+(se.jack <- sqrt( ((n-1)/n)*sum((m.jack-mean(m.jack))^2) ))
 
 
-# Jackknife function
-jackknife_se <- function(x1, x2) {
-  n <- length(x1)
-  jackknife_thetas <- numeric(n)
-  
-  for (i in 1:n) {
-    x1_jack <- x1[-i]
-    x2_jack <- x2[-i]
-    jackknife_thetas[i] <- mean(x1_jack) / mean(x2_jack)
-  }
-  
-  # Jackknife standard error
-  se <- sqrt((n - 1) * var(jackknife_thetas))
-  list(se = se, estimates = jackknife_thetas)
-}
-
-# Jackknife SE
-jackknife_results <- jackknife_se(x1, x2)
-jackknife_se <- jackknife_results$se
-jackknife_se
-
-
-### 3.2 -------------###########################################
-
-
-
-# Jackknife standard error function
-jackknife_se <- function(x1, x2) {
-  n <- length(x1)
-  theta_jack <- numeric(n)
-  for (i in 1:n) {
-    # Leave one observation out
-    theta_jack[i] <- theta_hat(x1[-i], x2[-i])
-  }
-  (n - 1) * sqrt(var(theta_jack) / n)
-}
-
-(jack.se <- jackknife_se(x1, x2))
-
-
-### 3.3 ----------
+### 3.3 ---------------------------------------------------------------
 # bootstrap confidence interval
 bootstrap_ci <- function(x1, x2, B, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
