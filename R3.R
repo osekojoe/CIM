@@ -81,19 +81,19 @@ plot(results$B, results$Bootstrap_SE, type = "b", log = "x",
 grid()
 
 ###--------
-n<-length(x1)
-B<-1000
-index<-c(1:n)
-theta.boot<-c(1:B)
-for(i in 1:B)
-{   
-  i.boot<-sample(index, size=n, replace=T)
-  x1.boot<-y[i.boot]
-  x2.boot<-z[i.boot]
-  theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
-} 
-
-(se.boot <- sqrt( ((n-1)/n)*sum((theta.boot-mean(theta.boot))^2) ))
+# n<-length(x1)
+# B<-1000
+# index<-c(1:n)
+# theta.boot<-c(1:B)
+# for(i in 1:B)
+# {   
+#   i.boot<-sample(index, size=n, replace=T)
+#   x1.boot<-y[i.boot]
+#   x2.boot<-z[i.boot]
+#   theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
+# } 
+# 
+# (se.boot <- sqrt( ((n-1)/n)*sum((theta.boot-mean(theta.boot))^2) ))
 
 
 ##--------Jacknife --------------------------------------------------------
@@ -135,7 +135,7 @@ bootstrap_ci <- function(x1, x2, B, seed = NULL) {
   
   theta_boot <- na.omit(theta_boot)
   
-  # 95% CI using the percentile method
+  # 95% CI using the quantile method
   ci_lower <- quantile(theta_boot, probs = 0.025)
   ci_upper <- quantile(theta_boot, probs = 0.975)
   
@@ -155,14 +155,12 @@ print(result$CI)
 x1 <- c(0.8, -1.23, 1.25, -0.28, -0.03, 0.61, 1.43, -0.54, -0.35, -1.60)
 x2 <- c(0.64, -1.69, 1.47, -0.14, -0.18, 0.43, 1.61, -0.31, -0.38, -1.82)
 
-# Function to calculate bootstrap estimates and CI (without histogram)
 bootstrap_ci <- function(x1, x2, B) {
   set.seed(2523)  # Set seed if provided
   n <- length(x1)
   theta_boot <- numeric(B)
   
   for (b in 1:B) {
-    # Resample with replacement
     indices <- sample(1:n, size = n, replace = TRUE)
     x1_sample <- x1[indices]
     x2_sample <- x2[indices]
@@ -175,7 +173,6 @@ bootstrap_ci <- function(x1, x2, B) {
     }
   }
   
-  # Remove NA values
   theta_boot <- na.omit(theta_boot)
   
   ci <- quantile(theta_boot, probs = c(0.025, 0.975))
@@ -184,10 +181,11 @@ bootstrap_ci <- function(x1, x2, B) {
 }
 
 result <- bootstrap_ci(x1, x2, B = 10000)
-print(result$CI)
+print(result$CI)  #[-1.526465, 3.263691]
 
-### following prof code
+### following prof code ------------------------------------
 n <- length(x1)
+set.seed(2025)
 B = 10000
 theta_boot<-c(1:B)
 
@@ -201,7 +199,8 @@ for (b in 1:B) {
 
 t.up<-quantile(theta_boot,probs=c(0.95))
 t.lo<-quantile(theta_boot,probs=c(0.05))
-c(t.up,t.lo)
+c(t.up,t.lo)   # [0.3089561, 2.0500424]
+
 hist(theta_boot,nclass=10,col=0,probability=TRUE)
 lines(c(t.up,t.up),c(0,20),col=2)
 lines(c(t.lo,t.lo),c(0,10),col=2)
@@ -213,24 +212,35 @@ lines(c(t.lo,t.lo),c(0,10),col=2)
 
 #### 3.4 ------------------------------------------------------------------
 # Hypothesis test using bootstrap
-bootstrap_test <- function(x1, x2, B, theta_null = 1) {
-  set.seed(5332)
-  n <- length(x1)
-  bootstrap_thetas <- numeric(B)
-  
-  for (b in 1:B) {
-    indices <- sample(1:n, n, replace = TRUE)
-    x1_sample <- x1[indices]
-    x2_sample <- x2[indices]
-    bootstrap_thetas[b] <- mean(x1_sample) / mean(x2_sample)
-  }
-  
-  # Compute p-value for one-sided test
-  p_value <- mean(bootstrap_thetas >= theta_null)
-  p_value
-}
+# Data
+x1 <- c(0.8, -1.23, 1.25, -0.28, -0.03, 0.61, 1.43, -0.54, -0.35, -1.60)
+x2 <- c(0.64, -1.69, 1.47, -0.14, -0.18, 0.43, 1.61, -0.31, -0.38, -1.82)
 
-# Test with B = 1000 and H0: theta = 1
-bootstrap_p_value <- bootstrap_test(x1, x2, B = 1000, theta_null = 1)
-bootstrap_p_value
+# Observed theta
+theta.obs <- mean(x1) / mean(x2)
+
+# Transform x2 under H0 to ensure theta = 1
+x2.null <- x2 * (mean(x1) / mean(x2))
+x2.null
+
+#mean(x1) / mean(x2.null)
+
+# Bootstrap procedure
+n <- length(x1)
+B = 10000
+theta.boot <- c(1:B)
+
+set.seed(2025)
+
+#bootstrap_test <- function(x1, x2.null) {
+  for (b in 1:B) {
+    indices <- sample(1:n, size = n, replace = TRUE)
+    x1.boot <- x1[indices]
+    x2.boot <- x2.null[indices]
+    theta.boot[b] <- mean(x1.boot) / mean(x2.boot)
+  }
+#}
+
+(pmc <- (1+sum(abs(theta.boot) >= abs(theta.obs)))/(B+1))
+
 
