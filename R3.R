@@ -13,6 +13,25 @@ x2<-c(0.64,-1.69,1.47,-0.14,-0.18,0.43,1.61,-0.31,-0.38,-1.82)
 (theta.obs <- mean_x1 / mean_x2)
 
 
+# Classical method for standard error
+classical_se <- function(x1, x2) {
+  n <- length(x1)
+  mean_x1 <- mean(x1)
+  mean_x2 <- mean(x2)
+  
+  var_x1 <- var(x1)
+  var_x2 <- var(x2)
+  
+  se <- sqrt((1 / mean_x2)^2 * (var_x1 / n) + 
+               (-mean_x1 / mean_x2^2)^2 * (var_x2 / n))
+  se
+}
+
+# Calculate classical SE
+classical_se(x1, x2)
+
+
+
 ### 3.2 ----------------------------------------------------
 ## Non-parameteric bootstrap 
 # Define the dataset
@@ -29,7 +48,7 @@ theta_hat(x1, x2)
 
 # Bootstrap standard error function
 bootstrap_se <- function(x1, x2, B) {
-  set.seed(3647)
+  set.seed(2025)
   n <- length(x1)
   theta_boot <- numeric(B)
   for (b in 1:B) {
@@ -62,9 +81,7 @@ plot(results$B, results$Bootstrap_SE, type = "b", log = "x",
 grid()
 
 
-
-
-##--------Jacknife ----------------
+##--------Jacknife --------------------------------------------------------
 (n <- length(x1))
 m.jack <- c(1:n)
 
@@ -75,7 +92,7 @@ for(i in 1:n) {
   m.jack[i] <- mean(x2.jack)/mean(x1.jack)
 }
 
-(n - 1) * (mean(m.jack) - theta.obs)
+(n - 1) * (mean(m.jack) - theta.obs) # 5.819458
 
 
 # Jackknife function
@@ -116,6 +133,7 @@ jackknife_se <- function(x1, x2) {
 }
 
 (jack.se <- jackknife_se(x1, x2))
+
 
 ### 3.3 ----------
 # bootstrap confidence interval
