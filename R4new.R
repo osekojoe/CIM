@@ -23,6 +23,7 @@ c(t.hat-se.t.hat*C.alpha,t.hat+se.t.hat*C.alpha)
 ### - 4.2 -------------------------------------------------------
 # Percentile method ------
 (mud.obs <- mean(x1) - mean(x2))
+z <- q3df$d
 
 set.seed(2025)
 B <- 10000
@@ -30,57 +31,79 @@ n <- length(x1)
 mud.boot <- c(1:B)
 
 for (b in 1:B) {
-  indices <- sample(1:n, size = n, replace = TRUE)
-  x1.boot <- x1[indices]
-  x2.boot <- x2[indices]
-  mud.boot[b] <- mean(x1.boot) - mean(x2.boot)
+  z.boot <- sample(z, size = length(z), replace = TRUE)
+  mud.boot[b] <- mean(z.boot)
 }
-
 
 (CI.P <- quantile(mud.boot, probs = c(0.025, 0.975)))
 
-lo <- quantile(mud.boot,probs=c(0.05,0.95))[1]
-up <- quantile(mud.boot,probs=c(0.05,0.95))[2]
+(lo <- quantile(mud.boot,probs=c(0.05,0.95))[1])
+(up <- quantile(mud.boot,probs=c(0.05,0.95))[2])
 hist(mud.boot, probability=T,nclass=50)
-lines(c(lo,lo),c(0,5),col=4)
-lines(c(up,up),c(0,5),col=4)
+lines(c(lo,lo),c(0,6),col=4)
+lines(c(up,up),c(0,6),col=4)
 
 # bootstrap t method --------
 
 z <- q3df$d
+
 t.hat <- mean(q3df$d)
 se.t.hat<-sqrt(var(z)/10)
 
 set.seed(2025)
 B <- 10000
-n <- length(x1)
 mud.boot <- c(1:B)
 
-for (b in 1:B) {
-  x.boot <- sample(z, size = length(z), replace = TRUE)
-  se.boot <- sqrt(var(x.boot) / length(z))
-  mud.boot[b] <- (mean(x.boot) - t.hat) / se.boot
+for(b in 1:B)
+{
+  x.boot<-sample(z,size=length(z),replace=TRUE) 
+  se.boot<-sqrt(var(x.boot)/length(z))
+  mud.boot[b]<-(mean(x.boot)-t.hat)/se.boot 
 }
 
-# Quantiles for bootstrap replicates
-quantile(mud.boot, probs=c(0.05,0.95))
+quantile(mud.boot,probs=c(0.025,0.975))
 
 # bootstrap t interval
-up <- quantile(mud.boot,probs=c(0.95))
-lo <- quantile(mud.boot,probs=c(0.05))
+(up <- quantile(mud.boot,probs=c(0.975)))
+(lo <- quantile(mud.boot,probs=c(0.025)))
 c(t.hat + se.t.hat*lo, t.hat + se.t.hat*up)
 
 t.test(z, conf.level=0.95)
 
 # BCa method ----------------------------------------
 library(boot)
-bca_ci <- boot.ci(boot.out = boot(data = data.frame(x1, x2), statistic = function(data, indices) {
+# provides 5 types of CIs
+bca_ci <- boot.ci(boot.out = boot(data = data.frame(
+  x1, x2), statistic = function(data, indices) {
   sample_x1 <- data$x1[indices]
   sample_x2 <- data$x2[indices]
   return(mean(sample_x1) - mean(sample_x2))
-}, R = B), type = "bca")
+}, R = B)) # R is number of bootstraps
 bca_ci
 
+# optional
+set.seed(2025)
+theta <- function(z){mean(z)}
+results <- bcanon(z, 10000, theta, alpha=c(0.025,0.975))
+results$confpoints
+
 ## 4.3 
-(p_value <- mean(abs(bootstrap_diffs) >= abs(observed_diff)))
+(t.obs <- t.test(z, mu=0)$statistic)
+mu.d <- mean(z)
+(z.tilde <- z - mu.d + 0)
+mean(z.tilde)
+
+set.seed(2025)
+B <- 10000
+mud.boot <- c(1:B)
+for(b in 1:B) {
+  z.b <- sample(z.tilde, size=length(z), replace=TRUE) 
+  mud.boot[b]<-t.test(z.b, mu=0)$statistic 
+}
+
+(Pmc <- (1+sum(abs(mud.boot) > abs(t.obs)))/(B+1))
+
+t.test(z, mu=0)
+
+
 
