@@ -64,8 +64,8 @@ bootstrap_se <- function(x1, x2, B) {
       theta_boot[b] <- NA  # Assign NA if mean(x2) = 0
     }
   }
-  sd(na.omit(theta_boot))/sqrt(n)
-  #sqrt(var(theta_boot))
+  #sd(na.omit(theta_boot))/sqrt(n)
+  sqrt(var(na.omit(theta_boot)))
 }
 
 bootstrap_B <- c(10, 20, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000)
@@ -107,10 +107,11 @@ for(i in 1:n) {
   x2.jack <- x2[ - c(i)]
   m.jack[i] <- mean(x2.jack)/mean(x1.jack)
 }
+mean(m.jack)
 # for bias
 (n - 1) * (mean(m.jack) - theta.obs) # 5.819458
 # for standard error
-(se.jack <- sqrt( ((n-1)/n)*sum((m.jack-mean(m.jack))^2) ))
+(se.jack <- sqrt( ((n-1)/n)*sum((m.jack-mean(m.jack))^2) )) # 3.400245
 
 
 ### 3.3 ---------------------------------------------------------------
@@ -206,8 +207,6 @@ lines(c(t.up,t.up),c(0,20),col=2)
 lines(c(t.lo,t.lo),c(0,10),col=2)
 
 
-
-
 ########=================================
 
 #### 3.4 ------------------------------------------------------------------
@@ -241,6 +240,6 @@ set.seed(2025)
   }
 #}
 
-(pmc <- (1+sum(abs(theta.boot) >= abs(theta.obs)))/(B+1))
-
+#(pmc <- (1+sum(abs(theta.boot) >= abs(theta.obs)))/(B+1))
+(pmc <- (1+sum(theta.boot >= theta.obs))/(B+1))
 
