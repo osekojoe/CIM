@@ -96,7 +96,7 @@ grid()
 # (se.boot <- sqrt( ((n-1)/n)*sum((theta.boot-mean(theta.boot))^2) ))
 
 
-##--------Jacknife --------------------------------------------------------
+##--------Jacknife ----------------------------
 
 (n <- length(x1))
 m.jack <- c(1:n)
@@ -115,76 +115,11 @@ mean(m.jack)
 
 
 ### 3.3 ---------------------------------------------------------------
-# bootstrap confidence interval
-bootstrap_ci <- function(x1, x2, B, seed = NULL) {
-  if (!is.null(seed)) set.seed(seed)
-  
-  n <- length(x1)
-  theta_boot <- numeric(B)
-  
-  for (b in 1:B) {
-    indices <- sample(1:n, size = n, replace = TRUE)
-    x1_sample <- x1[indices]
-    x2_sample <- x2[indices]
-    
-    if (mean(x2_sample) != 0) {
-      theta_boot[b] <- mean(x1_sample) / mean(x2_sample)
-    } else {
-      theta_boot[b] <- NA 
-    }
-  }
-  
-  theta_boot <- na.omit(theta_boot)
-  
-  # 95% CI using the quantile method
-  ci_lower <- quantile(theta_boot, probs = 0.025)
-  ci_upper <- quantile(theta_boot, probs = 0.975)
-  
-  list(CI = c(ci_lower, ci_upper), Bootstrap_Estimates = theta_boot)
-}
-
-result <- bootstrap_ci(x1, x2, B = 10000, seed = 123)
-
-# Print the confidence interval
-print(result$CI)
-
-
-
-#######===3.3 ======================================
 # Confidence interval using bootstrap estimates
 # Data
 x1 <- c(0.8, -1.23, 1.25, -0.28, -0.03, 0.61, 1.43, -0.54, -0.35, -1.60)
 x2 <- c(0.64, -1.69, 1.47, -0.14, -0.18, 0.43, 1.61, -0.31, -0.38, -1.82)
 
-bootstrap_ci <- function(x1, x2, B) {
-  set.seed(2523)  # Set seed if provided
-  n <- length(x1)
-  theta_boot <- numeric(B)
-  
-  for (b in 1:B) {
-    indices <- sample(1:n, size = n, replace = TRUE)
-    x1_sample <- x1[indices]
-    x2_sample <- x2[indices]
-    
-    # Check for mean(x2) != 0
-    if (mean(x2_sample) != 0) {
-      theta_boot[b] <- mean(x1_sample) / mean(x2_sample)
-    } else {
-      theta_boot[b] <- NA  # Assign NA if mean(x2) = 0
-    }
-  }
-  
-  theta_boot <- na.omit(theta_boot)
-  
-  ci <- quantile(theta_boot, probs = c(0.025, 0.975))
-  
-  return(list(CI = ci, Bootstrap_Estimates = theta_boot))
-}
-
-result <- bootstrap_ci(x1, x2, B = 10000)
-print(result$CI)  #[-1.526465, 3.263691]
-
-### following prof code ------------------------------------
 n <- length(x1)
 set.seed(2025)
 B = 10000
@@ -198,16 +133,14 @@ for (b in 1:B) {
   theta_boot[b] <- mean(x1_sample) / mean(x2_sample)
 }
 
-t.up<-quantile(theta_boot,probs=c(0.95))
-t.lo<-quantile(theta_boot,probs=c(0.05))
-c(t.up,t.lo)   # [0.3089561, 2.0500424]
+t.up<-quantile(theta_boot,probs=c(0.975))
+t.lo<-quantile(theta_boot,probs=c(0.025))
+c(t.up,t.lo)   # [-1.476429 , 3.276681]
 
 hist(theta_boot,nclass=10,col=0,probability=TRUE)
 lines(c(t.up,t.up),c(0,20),col=2)
 lines(c(t.lo,t.lo),c(0,10),col=2)
 
-
-########=================================
 
 #### 3.4 ------------------------------------------------------------------
 # Hypothesis test using bootstrap
@@ -240,6 +173,6 @@ set.seed(2025)
   }
 #}
 
-#(pmc <- (1+sum(abs(theta.boot) >= abs(theta.obs)))/(B+1))
+#(pmc <- (1+sum(abs(theta.boot) > abs(theta.obs)))/(B+1))
 (pmc <- (1+sum(theta.boot >= theta.obs))/(B+1))
 
