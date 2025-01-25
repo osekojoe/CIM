@@ -58,10 +58,10 @@ bootstrap_se <- function(x1, x2, B) {
     x2_sample <- x2[indices]
     
     # Check for mean(x2) != 0
-    if (mean(x2_sample) != 0) {
+    if (mean(x2_sample) >= 0.0001) {
       theta_boot[b] <- theta_hat(x1_sample, x2_sample)
     } else {
-      theta_boot[b] <- NA  # Assign NA if mean(x2) = 0
+      theta_boot[b] <- NA 
     }
   }
   #sd(na.omit(theta_boot))/sqrt(n)
@@ -79,21 +79,6 @@ plot(results$B, results$Bootstrap_SE, type = "b", log = "x",
      xlab = "B", ylab = "Boot. Std. Error",
      main = "Bootstrap SE vs B")
 grid()
-
-###--------
-# n<-length(x1)
-# B<-1000
-# index<-c(1:n)
-# theta.boot<-c(1:B)
-# for(i in 1:B)
-# {   
-#   i.boot<-sample(index, size=n, replace=T)
-#   x1.boot<-y[i.boot]
-#   x2.boot<-z[i.boot]
-#   theta.boot[i]<-mean(x1.boot)/mean(x2.boot)
-# } 
-# 
-# (se.boot <- sqrt( ((n-1)/n)*sum((theta.boot-mean(theta.boot))^2) ))
 
 
 ##--------Jacknife ----------------------------
