@@ -65,7 +65,7 @@ lines(c(t.obs,t.obs),c(0,1),lwd=3,col=2)
 dev.off()
 
 # bootstrap p value
-(Pmc <- (1+sum(t.boot > t.obs))/(B+1))  # 0.9627037
+(Pmc <- (1+sum(abs(t.boot) > abs(t.obs)))/(B+1))  # 0.5593441
 
 
 ### 2.3 -----------------------------------------------------------------------
