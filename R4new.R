@@ -84,13 +84,13 @@ bca_ci
 # optional
 set.seed(2025)
 theta <- function(z){mean(z)}
-results <- bcanon(z, 10000, theta, alpha=c(0.025,0.975))
-results$confpoints
+result <- bcanon(z, 10000, theta, alpha=c(0.025,0.975))
+result$confpoints
 
 ## 4.3 
 (t.obs <- t.test(z, mu=0)$statistic)
 mu.d <- mean(z)
-(z.tilde <- z - mu.d + 0)
+(z.tilde <- z - mu.d + 0) 
 mean(z.tilde)
 
 set.seed(2025)
