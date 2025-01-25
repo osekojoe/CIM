@@ -29,7 +29,7 @@ LRT.obs
 
 pval <- pchisq(LRT, df = 1, lower.tail = FALSE)
 pval
-(LRTsat <- lrtest(satfullfit, satredfit))
+(LRTsat <- lrtest(satredfit, satfullfit))
 
 ## -------------------------------------------------------------------
 # non-parametric
@@ -57,8 +57,23 @@ for (i in 1:B) {
 
 png("pictures/histnonparam1.2.png", width = 18, 
     height = 10, units = "cm", res = 300)
-hist(LRT.nb, nclass=50, xlim=c(0,40), xlab="LRT.b", main = "Histogram of LRT.b")
+hist(LRT.nb, probability=T, nclass=50, xlim=c(0,40), xlab="LRT.b", main = "Histogram of LRT.b")
 lines(c(LRT.obs,LRT.obs) ,c(0,5300),col=2)
+x <- seq(0, 40, by = 0.01)  # Range for the chi-squared curve
+lines(x, dchisq(x, df), col = "blue", lwd = 2, lty = 1)
+dev.off()
+
+
+df <- 1 
+x <- seq(0, 10, by = 0.01)
+
+# Plot the theoretical  chi-squared distribution
+png("pictures/theoretical1.2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+plot(x, dchisq(x, df), type = "l", lwd = 2, col = "blue",
+     xlab = "LRT Statistic",
+     ylab = "Density",
+     main = "Theoretical Chisq Distribution")
 dev.off()
 
 #(pval.nonp <- mean(LRT.nb >= LRT.obs)) # 0.759
@@ -93,6 +108,20 @@ lines(c(LRT.obs, LRT.obs) ,c(0,5300),col=2)
 dev.off()
 
 (pval.p <- (1 + sum(LRT.pb > LRT.obs)) / (B+1)) # 0.5624376
+
+
+png("pictures/histcombined1.2.png", width = 18, 
+    height = 10, units = "cm", res = 300)
+par(mfrow=c(1,2))
+hist(LRT.nb, probability=T, nclass=50, xlim=c(0,40), xlab="LRT.b", main = "Histogram of LRT.b")
+lines(c(LRT.obs,LRT.obs) ,c(0,5300),col=2)
+lines(x, dchisq(x, df), col = "blue", lwd = 2, lty = 1)
+
+hist(LRT.pb, probability=T, nclass=50, xlim=c(-1,20), xlab="LRT.b", main = "Histogram of LRT.b")
+lines(c(LRT.obs, LRT.obs) ,c(0,5300),col=2)
+lines(x, dchisq(x, df), col = "blue", lwd = 2, lty = 1)
+dev.off()
+par(mfrow=c(1,1))
 
 ## -------------------------------------------------------------------
 # permutation
